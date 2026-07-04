@@ -24,7 +24,7 @@ import subprocess
 import pandas as pd
 
 # Discover paths
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 POWER_PROJECT_DIR = r"C:\users\robert\power\g5\project"
 BATTERY_PROJECT_DIR = r"C:\Users\Robert\power\battery"
 DB_PATH = os.path.join(PROJECT_ROOT, "papers.db")

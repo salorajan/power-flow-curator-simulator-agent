@@ -21,6 +21,10 @@ and database persistence.
 import sys
 import os
 import json
+
+# Add src to system path so that modules are found
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+
 import database
 import agents_curator
 

@@ -26,7 +26,7 @@ import database
 
 def load_env():
     # Load .env file from the project root if it exists
-    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
     if os.path.exists(env_path):
         with open(env_path, "r", encoding="utf-8") as f:
             for line in f:
@@ -238,7 +238,7 @@ if result.stderr:
     print(result.stderr)
 """
     # Write the script file
-    simulations_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "simulations")
+    simulations_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "simulations")
     os.makedirs(simulations_dir, exist_ok=True)
     script_path = os.path.join(simulations_dir, f"simulate_paper_{paper_id}.py")
     with open(script_path, "w", encoding="utf-8") as f:

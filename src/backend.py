@@ -248,7 +248,7 @@ def api_run_solar_building(data: dict):
     return res
 
 # Serve frontend files
-static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
 if not os.path.exists(static_dir):
     os.makedirs(static_dir)
 

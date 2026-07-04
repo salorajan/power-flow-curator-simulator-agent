@@ -13,7 +13,12 @@
 # limitations under the License.
 
 import os
+import sys
 import sqlite3
+
+# Add src to system path so that modules are found
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+
 import database
 import guardrails
 

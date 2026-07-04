@@ -23,10 +23,13 @@ import os
 import json
 import subprocess
 
+# Add src to system path so that modules are found
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+
 def run_tests():
     print("--- Stage 3 MCP Server Tests ---")
     
-    server_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mcp_server.py")
+    server_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src", "mcp_server.py")
     
     # Start the MCP server in a subprocess
     proc = subprocess.Popen(

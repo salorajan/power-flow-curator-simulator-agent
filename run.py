@@ -5,6 +5,11 @@ import os
 # Support UTF-8 output
 sys.stdout.reconfigure(encoding='utf-8')
 
+# Add src to system path so that files can be imported seamlessly
+src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "src"))
+sys.path.insert(0, src_path)
+
+
 def main():
     # If starting with mcp argument, route execution to the MCP Server
     if len(sys.argv) > 1 and sys.argv[1].lower() in ["--mcp", "mcp"]:

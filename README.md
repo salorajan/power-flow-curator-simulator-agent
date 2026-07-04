@@ -81,7 +81,7 @@ agy-cli-projects/
    *Note: If no API key is specified, the application will automatically fall back to its high-fidelity local rule-based mock reviews engine, remaining 100% functional and testable. No keys or passwords are hardcoded or shared in the repository.*
 
 4. **Detailed Documentation & User Manual:**
-   Refer to the comprehensive [reference/user_manual.md](file:///C:/users/robert/power/g5/agy-cli-projects/reference/user_manual.md) for step-by-step guidance on running the FastAPI Dashboard, the stdio MCP Server, generated paper simulations, and the verification test suite.
+   Refer to the comprehensive [user_manual.md](file:///C:/users/robert/power/g5/agy-cli-projects/user_manual.md) for step-by-step guidance on running the FastAPI Dashboard, the stdio MCP Server, generated paper simulations, and the verification test suite.
 
 
 ---
