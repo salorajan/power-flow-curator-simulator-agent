@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Search and track the latest publications on power flow and optimal power flow from IEEE Transactions on Power Systems, Power Delivery, and Smart Grid.">
+    <title>IEEE Power Publications Tracker</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons (CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar / Navigation -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i data-lucide="zap"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>IEEE Power Tracker</h1>
+                    <span>IEEE Transactions Publications</span>
+                </div>
+            </div>
+            
+            <div class="sync-panel" id="sync-panel">
+                <div class="sync-status">
+                    <span class="sync-indicator idle" id="sync-indicator"></span>
+                    <span class="sync-text" id="sync-text">System Ready</span>
+                </div>
+                <button class="btn btn-primary" id="btn-sync" title="Trigger weekly search and update manually">
+                    <i data-lucide="refresh-cw" id="sync-btn-icon"></i>
+                    <span>Sync Database</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="app-content">
+            <!-- Navigation Tabs -->
+            <nav class="app-nav">
+                <button class="nav-tab active" id="nav-dashboard-tab">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-tab" id="nav-triage-tab">
+                    <i data-lucide="shield-alert"></i>
+                    <span>Admin Triage</span>
+                    <span class="triage-badge-count" id="triage-badge-count" style="display: none;">0</span>
+                </button>
+                <button class="nav-tab" id="nav-simulator-tab">
+                    <i data-lucide="sliders"></i>
+                    <span>Grid Simulator</span>
+                </button>
+            </nav>
+
+            <!-- View 1: Dashboard -->
+            <div class="tab-view active" id="view-dashboard">
+            <!-- Stats Dashboard Cards -->
+            <section class="stats-grid" aria-label="Database Statistics">
+                <div class="stat-card" id="stat-total-card">
+                    <div class="stat-icon total"><i data-lucide="book-open"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Publications</span>
+                        <h2 class="stat-value" id="stat-total">0</h2>
+                    </div>
+                </div>
+                <div class="stat-card" id="stat-early-card">
+                    <div class="stat-icon early"><i data-lucide="sparkles"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Early Access</span>
+                        <h2 class="stat-value" id="stat-early">0</h2>
+                    </div>
+                </div>
+                <div class="stat-card" id="stat-pf-card">
+                    <div class="stat-icon pf"><i data-lucide="activity"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Power Flow (PF)</span>
+                        <h2 class="stat-value" id="stat-pf">0</h2>
+                    </div>
+                </div>
+                <div class="stat-card" id="stat-opf-card">
+                    <div class="stat-icon opf"><i data-lucide="git-branch"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Optimal Power Flow (OPF)</span>
+                        <h2 class="stat-value" id="stat-opf">0</h2>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Filter & Search Controls -->
+            <section class="controls-panel" aria-label="Search and Filter Controls">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search by title, author, or abstract..." autocomplete="off">
+                    <button class="clear-btn" id="btn-clear-search" style="display: none;">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="filter-journal">Journal</label>
+                        <select id="filter-journal">
+                            <option value="">All Journals</option>
+                            <option value="IEEE Transactions on Power Systems">Transactions on Power Systems (TPWRS)</option>
+                            <option value="IEEE Transactions on Power Delivery">Transactions on Power Delivery (TPWRD)</option>
+                            <option value="IEEE Transactions on Smart Grid">Transactions on Smart Grid (TSG)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="filter-topic">Topic</label>
+                        <select id="filter-topic">
+                            <option value="">All Topics</option>
+                            <option value="power flow">Power Flow</option>
+                            <option value="optimal power flow">Optimal Power Flow</option>
+                            <option value="both">Matches Both</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-status">Status</label>
+                        <select id="filter-status">
+                            <option value="">All Statuses</option>
+                            <option value="Published">Published (Current Issue)</option>
+                            <option value="Early Access">Early Access</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Update Status Overlay / Card (Visible during update) -->
+            <section class="update-log-container" id="update-log-container" style="display: none;">
+                <div class="update-log-header">
+                    <h3><i data-lucide="loader-2" class="spin"></i> Syncing Publications Database...</h3>
+                    <button class="close-log-btn" id="btn-close-log"><i data-lucide="x"></i></button>
+                </div>
+                <div class="update-progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="update-log-console" id="update-log-console">
+                    Initializing connection to Crossref API...
+                </div>
+            </section>
+
+            <!-- Publications Listing -->
+            <section class="publications-section" aria-label="Publications List">
+                <div class="section-header">
+                    <div class="results-count">
+                        Found <strong id="results-count-num">0</strong> publications
+                    </div>
+                    <div class="sort-info">
+                        Sorted by: <strong>Newest First</strong>
+                    </div>
+                </div>
+
+                <div class="papers-list" id="papers-list">
+                    <!-- Cards will be dynamically inserted here -->
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading publications...</p>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination" style="display: none;">
+                    <button class="btn btn-secondary" id="btn-prev" disabled>
+                        <i data-lucide="chevron-left"></i> Previous
+                    </button>
+                    <span class="pagination-info">Page <strong id="page-num">1</strong> of <strong id="page-total">1</strong></span>
+                    <button class="btn btn-secondary" id="btn-next" disabled>
+                        Next <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- View 2: Admin Triage -->
+            <div class="tab-view" id="view-triage" style="display: none;">
+                <section class="triage-section">
+                    <div class="section-header">
+                        <h2>Human-in-the-Loop Admin Triage</h2>
+                        <p class="section-desc">Publications flagged by security guardrails for prompt injections are queued here. Review evidence and manually Approve or Reject.</p>
+                    </div>
+                    <div class="triage-list" id="triage-list">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i data-lucide="check-circle-2" style="color: var(--accent-teal);"></i></div>
+                            <h3>Triage queue is empty</h3>
+                            <p>No flagged papers require manual intervention.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- View 3: Grid Simulator -->
+            <div class="tab-view" id="view-simulator" style="display: none;">
+                <div class="simulator-layout">
+                    <!-- Controls Column -->
+                    <div class="simulator-controls-card">
+                        <h3>Power Grid Case Simulator</h3>
+                        <p class="section-desc">Run steady-state power flow or optimal power flow simulations on IEEE grids using PowerPython CLI.</p>
+                        
+                        <div class="sim-form-group">
+                            <label for="sim-case">IEEE Case Study</label>
+                            <select id="sim-case">
+                                <option value="9">IEEE 9-Bus System</option>
+                                <option value="6ww">IEEE 6-Bus (Wood & Wollenberg)</option>
+                                <option value="118">IEEE 118-Bus System</option>
+                            </select>
+                        </div>
+
+                        <div class="sim-form-group">
+                            <label for="sim-analysis">Analysis Algorithm</label>
+                            <select id="sim-analysis">
+                                <option value="acpf">AC Power Flow (Newton-Raphson)</option>
+                                <option value="gausspf">AC Power Flow (Gauss-Seidel)</option>
+                                <option value="fdpf">AC Power Flow (Fast Decoupled)</option>
+                                <option value="hepf">Holomorphic Embedding Power Flow</option>
+                                <option value="dcpf">DC Power Flow (Linearized)</option>
+                                <option value="dcopf">DC Optimal Power Flow (Loss/Cost Min)</option>
+                                <option value="acopf">AC Optimal Power Flow (Non-linear)</option>
+                                <option value="contingency">N-1 Contingency Vulnerability Analysis</option>
+                            </select>
+                        </div>
+
+                        <button class="btn btn-primary w-full" id="btn-run-sim">
+                            <i data-lucide="play"></i> Run Grid Simulation
+                        </button>
+
+                        <div class="sim-divider"></div>
+
+                        <h3>Smart Building DER Optimizer</h3>
+                        <p class="section-desc">Simulate a local smart building optimized with pvlib solar modeling and CVXPY BESS battery scheduling.</p>
+
+                        <div class="sim-form-group">
+                            <label for="der-type">Building Load Type</label>
+                            <select id="der-type">
+                                <option value="commercial">Commercial Building</option>
+                                <option value="residential">Residential Complex</option>
+                                <option value="dc">Enterprise Datacenter</option>
+                                <option value="aidc">AI High-Density Datacenter</option>
+                            </select>
+                        </div>
+
+                        <div class="sim-form-grid">
+                            <div class="sim-form-group">
+                                <label for="der-solar">Solar (kW)</label>
+                                <input type="number" id="der-solar" value="1000" min="0" step="100">
+                            </div>
+                            <div class="sim-form-group">
+                                <label for="der-battery">Battery (kWh)</label>
+                                <input type="number" id="der-battery" value="5000" min="0" step="500">
+                            </div>
+                        </div>
+
+                        <button class="btn btn-secondary w-full" id="btn-run-der">
+                            <i data-lucide="sun"></i> Run Solar-BESS Dispatch
+                        </button>
+                    </div>
+
+                    <!-- Results Column -->
+                    <div class="simulator-results-panel">
+                        <div class="results-header">
+                            <h3>Simulation Results & Grid Analytics</h3>
+                            <span class="sim-status-badge idle" id="sim-status">Idle</span>
+                        </div>
+
+                        <div class="sim-results-output" id="sim-results-output">
+                            <div class="empty-state">
+                                <div class="empty-icon"><i data-lucide="terminal"></i></div>
+                                <h3>Console Output</h3>
+                                <p>Configure and run a grid simulation or smart building optimization to view execution logs and physical results here.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>&copy; 2026 IEEE Power Publications Tracker. Manually updated weekly. Powered by Crossref API.</p>
+            <p class="last-sync-text">Last Sync: <span id="last-sync-time">Never</span></p>
+        </footer>
+    </div>
+
+    <!-- Paper Details Modal -->
+    <div class="modal" id="paper-modal" aria-hidden="true">
+        <div class="modal-backdrop" id="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close-btn" id="btn-close-modal"><i data-lucide="x"></i></button>
+            <div class="modal-body">
+                <div class="modal-journal-badge" id="modal-journal">IEEE Transactions on Power Systems</div>
+                <h2 class="modal-title" id="modal-title">Paper Title Goes Here</h2>
+                
+                <div class="modal-meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">Authors</span>
+                        <span class="meta-value" id="modal-authors">Author 1, Author 2</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Publication Date</span>
+                        <span class="meta-value" id="modal-date">2026-06</span>
+                    </div>
+                    <div class="meta-item" id="modal-volume-item">
+                        <span class="meta-label">Volume / Issue</span>
+                        <span class="meta-value" id="modal-volume-issue">Vol. 41, No. 3</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Topic</span>
+                        <span class="meta-value badge" id="modal-topic">Power Flow</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Status</span>
+                        <span class="meta-value badge" id="modal-status">Early Access</span>
+                    </div>
+                </div>
+
+                <div class="modal-tabs">
+                    <button class="modal-tab-btn active" id="btn-modal-abstract" data-tab="abstract">Abstract</button>
+                    <button class="modal-tab-btn" id="btn-modal-theory" data-tab="theory">Theory Review</button>
+                    <button class="modal-tab-btn" id="btn-modal-grid" data-tab="grid">Grid Impact</button>
+                    <button class="modal-tab-btn" id="btn-modal-digest" data-tab="digest">Educational Digest</button>
+                </div>
+
+                <div class="modal-tab-content active" id="modal-tab-abstract">
+                    <div class="modal-abstract-content" id="modal-abstract">
+                        Paper abstract goes here...
+                    </div>
+                </div>
+
+                <div class="modal-tab-content" id="modal-tab-theory" style="display: none;">
+                    <div class="curation-not-run" id="theory-not-run">
+                        <p>No agent review card exists for this paper yet.</p>
+                        <button class="btn btn-primary btn-run-curation" id="btn-curate-paper">
+                            <i data-lucide="cpu"></i> Run Multi-Agent Curation Panel
+                        </button>
+                    </div>
+                    <div class="curation-running" id="theory-running" style="display: none;">
+                        <div class="spinner spinner-sm"></div>
+                        <p>Agents are curating this paper (Theory, Grid, and Digest perspectives)...</p>
+                    </div>
+                    <div class="curation-result" id="theory-result" style="display: none;">
+                        <div class="score-display">
+                            <span class="score-label">Theory Rigor Score:</span>
+                            <span class="score-val badge" id="theory-score">0/10</span>
+                        </div>
+                        <div class="markdown-body" id="theory-review-text"></div>
+                    </div>
+                </div>
+
+                <div class="modal-tab-content" id="modal-tab-grid" style="display: none;">
+                    <div class="curation-not-run" id="grid-not-run">
+                        <p>No agent review card exists for this paper yet.</p>
+                        <button class="btn btn-primary btn-run-curation" id="btn-curate-paper-grid">
+                            <i data-lucide="cpu"></i> Run Multi-Agent Curation Panel
+                        </button>
+                    </div>
+                    <div class="curation-result" id="grid-result" style="display: none;">
+                        <div class="score-display">
+                            <span class="score-label">Grid Impact & Sustainability Score:</span>
+                            <span class="score-val badge" id="grid-score">0/10</span>
+                        </div>
+                        <div class="markdown-body" id="grid-review-text"></div>
+                    </div>
+                </div>
+
+                <div class="modal-tab-content" id="modal-tab-digest" style="display: none;">
+                    <div class="curation-not-run" id="digest-not-run">
+                        <p>No agent review card exists for this paper yet.</p>
+                        <button class="btn btn-primary btn-run-curation" id="btn-curate-paper-digest">
+                            <i data-lucide="cpu"></i> Run Multi-Agent Curation Panel
+                        </button>
+                    </div>
+                    <div class="curation-result" id="digest-result" style="display: none;">
+                        <div class="markdown-body" id="digest-text"></div>
+                        <div class="acronyms-display">
+                            <h4>Key Acronyms Identified:</h4>
+                            <div class="acronyms-grid" id="acronyms-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <a href="#" target="_blank" class="btn btn-primary" id="modal-link-btn">
+                        <i data-lucide="external-link"></i>
+                        <span>Open on IEEE Xplore</span>
+                    </a>
+                    <button class="btn btn-secondary" id="modal-copy-citation-btn">
+                        <i data-lucide="copy"></i>
+                        <span>Copy Citation</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom App Script -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
