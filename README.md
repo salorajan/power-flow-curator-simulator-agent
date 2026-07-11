@@ -24,6 +24,38 @@ Our portal bridges the gap between scientific literature and active engineering 
 
 ---
 
+## ⚙️ System Architecture & Workflow
+
+The flowchart below shows how papers flow through the pre-screening guardrails, reach the multi-agent consensus panel, trigger automated simulation generation, and expose services to the frontend and MCP:
+
+```mermaid
+graph TD
+    A[Crossref Crawler] -->|1. Crawls Abstracts| B{Security Guardrails}
+    B -->|Flagged / Injection| C[Triage Queue - HITL Approval]
+    B -->|Safe| D[(Papers Database)]
+    C -->|Approved by User| D
+    C -->|Rejected| E[Discarded]
+    
+    D -->|2. Trigger Curation| F[Multi-Agent Consensus Panel]
+    subgraph Multi-Agent Panel
+        F1[Theory Agent]
+        F2[Grid Agent]
+        F3[Educational Digest Agent]
+    end
+    F --> F1 & F2 & F3
+    
+    F1 & F2 & F3 -->|3. Save Review Cards| G[(Papers & Reviews DB)]
+    F1 & F2 & F3 -->|4. Generate Code| H[Runnable Python Simulation]
+    
+    G & H --> I[Access Layers]
+    subgraph Access Layers
+        I1[Glassmorphic Web Frontend]
+        I2[stdio MCP Server]
+    end
+```
+
+---
+
 ## 📂 Project Directory Structure
 
 The project has been organized into a clean, modular repository layout:
